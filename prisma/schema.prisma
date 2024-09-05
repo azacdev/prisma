@@ -55,62 +55,89 @@ datasource db {
 //   createdAt DateTime @default(now())
 //   updatedAt DateTime @updatedAt
 // }
+// The `User` model represents a user in your system.
+// It has a one-to-one relationship with the `Profile` model (each user has one profile).
+// It also has a one-to-many relationship with the `Order` model (a user can place many orders).
 
 model User {
-  id String @id @default(cuid())
+  id String @id @default(cuid()) // Primary key with a default value of cuid
 
-  name  String
-  email String
+  name  String // User's name
+  email String // User's email
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  profile   Profile?
-  Order     Order[]
+  createdAt DateTime @default(now()) // Timestamp for user creation
+  updatedAt DateTime @updatedAt // Automatically updated timestamp on modification
+
+  profile Profile? // One-to-one relationship: optional user profile
+  Order   Order[] // One-to-many relationship: a user can have multiple orders
 }
+
+// The `Profile` model represents a user profile, related to a single `User`.
+// It has a one-to-one relationship with the `User` model (a profile belongs to one user).
 
 model Profile {
-  id   String @id @default(cuid())
-  name String
+  id String @id @default(cuid()) // Primary key with a default value of cuid
 
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id])
+  name String // Profile name
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  userId String @unique // Foreign key for the user (unique because one user has one profile)
+  user   User   @relation(fields: [userId], references: [id]) // Relation to the `User` model
+
+  createdAt DateTime @default(now()) // Timestamp for profile creation
+  updatedAt DateTime @updatedAt // Automatically updated timestamp on modification
 }
+
+// The `Order` model represents an order placed by a user.
+// It has a one-to-many relationship with the `Product` model (an order can contain multiple products).
+// It also has a many-to-one relationship with the `User` model (an order belongs to one user).
 
 model Order {
-  id String @id @default(cuid())
+  id String @id @default(cuid()) // Primary key with a default value of cuid
 
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique // Foreign key for the user (an order belongs to one user)
+  user   User   @relation(fields: [userId], references: [id]) // Relation to the `User` model
 
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  product   Product[]
+  createdAt DateTime @default(now()) // Timestamp for order creation
+  updatedAt DateTime @updatedAt // Automatically updated timestamp on modification
+
+  product Product[] // One-to-many relationship: an order can have multiple products
 }
+
+// The `Category` model represents a hierarchical product category.
+// It has a self-referencing parent-child relationship (a category can have a parent category and multiple child categories).
+// It also has a one-to-many relationship with the `Product` model (a category can have multiple products).
 
 model Category {
-  id String @id @default(cuid())
+  id String @id @default(cuid()) // Primary key with a default value of cuid
 
-  name String
+  name String // Category name
 
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  Product   Product[]
+  parentId String? // Foreign key to reference the parent category
+  parent   Category? @relation("CategoryToCategory", fields: [parentId], references: [id]) // Self-referencing relation for parent category
+
+  children Category[] @relation("CategoryToCategory") // Self-referencing relation for child categories
+
+  Product Product[] // One-to-many relationship: a category can contain multiple products
+
+  createdAt DateTime @default(now()) // Timestamp for category creation
+  updatedAt DateTime @updatedAt // Automatically updated timestamp on modification
 }
 
+// The `Product` model represents a product being sold.
+// It has a many-to-many relationship with the `Order` model (a product can belong to multiple orders, and an order can contain multiple products).
+// It also has a many-to-one relationship with the `Category` model (a product belongs to one or more categories).
+
 model Product {
-  id String @id @default(cuid())
+  id String @id @default(cuid()) // Primary key with a default value of cuid
 
-  name        String
-  description String
-  price       Int
+  name        String // Product name
+  description String // Product description
+  price       Int // Product price
 
-  category Category[]
+  category Category[] // Many-to-one relationship: a product belongs to one or more categories
 
-  order Order[]
+  order Order[] // Many-to-many relationship: a product can belong to multiple orders
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) // Timestamp for product creation
+  updatedAt DateTime @updatedAt // Automatically updated timestamp on modification
 }
